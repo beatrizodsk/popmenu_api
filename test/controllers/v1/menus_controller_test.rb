@@ -2,8 +2,9 @@ require 'test_helper'
 
 class V1::MenusControllerTest < ActionDispatch::IntegrationTest
   def setup
-    @menu = create(:menu)
-    @menu_params = { menu: { name: 'New Menu' } }
+    @restaurant = create(:restaurant)
+    @menu = create(:menu, restaurant: @restaurant)
+    @menu_params = { menu: { name: 'New Menu', restaurant_id: @restaurant.id } }
     @invalid_menu_params = { menu: { name: '' } }
   end
 
@@ -112,7 +113,7 @@ class V1::MenusControllerTest < ActionDispatch::IntegrationTest
   end
 
   test 'should handle extra parameters gracefully' do
-    extra_params = { menu: { name: 'Test Menu', extra_field: 'ignored' } }
+    extra_params = { menu: { name: 'Test Menu', restaurant_id: @restaurant.id, extra_field: 'ignored' } }
 
     post v1_menus_url, params: extra_params, as: :json
 
