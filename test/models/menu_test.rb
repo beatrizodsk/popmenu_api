@@ -16,7 +16,7 @@ class MenuTest < ActiveSupport::TestCase
     assert_not menu.valid?
   end
 
-  test 'name should not be unique' do
+  test 'name should allow duplicates' do
     menu = create(:menu)
     duplicate_menu = build(:menu, name: menu.name)
     assert duplicate_menu.valid?

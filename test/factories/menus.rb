@@ -1,6 +1,7 @@
 FactoryBot.define do
   factory :menu do
     sequence(:name) { |n| "Menu #{n}" }
+    association :restaurant
 
     trait :with_menu_items do
       transient do
@@ -16,6 +17,10 @@ FactoryBot.define do
       after(:create) do |menu|
         menu.menu_items.destroy_all
       end
+    end
+
+    trait :without_restaurant do
+      restaurant { nil }
     end
   end
 end
