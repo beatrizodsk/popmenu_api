@@ -9,7 +9,8 @@ FactoryBot.define do
       end
 
       after(:create) do |menu, evaluator|
-        create_list(:menu_item, evaluator.menu_items_count, menu: menu)
+        menu_items = create_list(:menu_item, evaluator.menu_items_count)
+        menu.menu_items << menu_items
       end
     end
 

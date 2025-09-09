@@ -63,60 +63,59 @@ class MenuItemTest < ActiveSupport::TestCase
     assert_includes menu_item.errors[:price], 'must be greater than 0'
   end
 
-  test 'should belong to menu' do
-    menu_item = create(:menu_item)
-    assert_respond_to menu_item, :menu
-    assert_not_nil menu_item.menu
+  test 'should have and belong to many menus' do
+    menu_item = create(:menu_item, :with_menus, menus_count: 2)
+    assert_respond_to menu_item, :menus
+    assert_equal 2, menu_item.menus.count
   end
 
-  test 'should require menu' do
-    menu_item = build(:menu_item, :without_menu)
-    assert_not menu_item.valid?
+  test 'should allow same menu item name across different menus' do
+    menu1 = create(:menu, name: 'Menu 1')
+    menu2 = create(:menu, name: 'Menu 2')
+
+    menu_item1 = create(:menu_item, name: 'Pizza Margherita')
+    menu_item2 = create(:menu_item, name: 'Pizza Margherita')
+
+    menu1.menu_items << menu_item1
+    menu2.menu_items << menu_item2
+
+    assert menu_item1.valid?
+    assert menu_item2.valid?
+    assert_equal 'Pizza Margherita', menu_item1.name
+    assert_equal 'Pizza Margherita', menu_item2.name
   end
 
-  test 'should not be valid with non-existent menu' do
-    menu_item = build(:menu_item, menu_id: 99_999)
-    assert_not menu_item.valid?
+  test 'should allow same menu item in multiple menus' do
+    menu1 = create(:menu, name: 'Menu 1')
+    menu2 = create(:menu, name: 'Menu 2')
+    menu_item = create(:menu_item, name: 'Pizza Margherita')
+
+    menu1.menu_items << menu_item
+    menu2.menu_items << menu_item
+
+    assert_equal 2, menu_item.menus.count
+    assert_includes menu_item.menus, menu1
+    assert_includes menu_item.menus, menu2
   end
 
-  test 'should not affect menu when destroyed' do
-    menu_item = create(:menu_item)
-    menu = menu_item.menu
-    menu_id = menu.id
+  test 'should not affect menus when destroyed' do
+    menu1 = create(:menu, name: 'Menu 1')
+    menu2 = create(:menu, name: 'Menu 2')
+    menu_item = create(:menu_item, name: 'Pizza Margherita')
+
+    menu1.menu_items << menu_item
+    menu2.menu_items << menu_item
+
+    menu1_id = menu1.id
+    menu2_id = menu2.id
     item_id = menu_item.id
 
     menu_item.destroy
 
-    assert Menu.find(menu_id)
+    assert Menu.find(menu1_id)
+    assert Menu.find(menu2_id)
     assert_raises(ActiveRecord::RecordNotFound) { MenuItem.find(item_id) }
-    assert_equal 0, menu.menu_items.count
-  end
-
-  test 'name should be unique' do
-    menu_item1 = create(:menu_item, name: 'Pizza Margherita')
-    menu_item2 = build(:menu_item, name: 'Pizza Margherita')
-
-    assert_not menu_item2.valid?
-    assert_includes menu_item2.errors[:name], 'has already been taken'
-  end
-
-  test 'name uniqueness should be case sensitive' do
-    menu_item1 = create(:menu_item, name: 'Pizza Margherita')
-    menu_item2 = build(:menu_item, name: 'pizza margherita')
-
-    assert menu_item2.valid?
-  end
-
-  test 'should allow same menu item name across different restaurants' do
-    restaurant1 = create(:restaurant, name: 'Restaurant 1')
-    restaurant2 = create(:restaurant, name: 'Restaurant 2')
-    menu1 = create(:menu, restaurant: restaurant1, name: 'Menu 1')
-    menu2 = create(:menu, restaurant: restaurant2, name: 'Menu 2')
-
-    menu_item1 = create(:menu_item, name: 'Pizza Margherita', menu: menu1)
-    menu_item2 = build(:menu_item, name: 'Pizza Margherita', menu: menu2)
-
-    assert_not menu_item2.valid?
-    assert_includes menu_item2.errors[:name], 'has already been taken'
+    assert_equal 0, menu1.menu_items.count
+    assert_equal 0, menu2.menu_items.count
   end
 end

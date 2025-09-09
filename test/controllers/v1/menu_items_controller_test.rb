@@ -3,8 +3,9 @@ require 'test_helper'
 class V1::MenuItemsControllerTest < ActionDispatch::IntegrationTest
   def setup
     @menu = create(:menu)
-    @menu_item = create(:menu_item, menu: @menu)
-    @menu_item_params = { menu_item: { name: 'New Item', price: 12.99, menu_id: @menu.id } }
+    @menu_item = create(:menu_item)
+    @menu.menu_items << @menu_item
+    @menu_item_params = { menu_item: { name: 'New Item', price: 12.99 } }
     @invalid_menu_item_params = { menu_item: { name: '', price: -1 } }
   end
 
@@ -14,7 +15,7 @@ class V1::MenuItemsControllerTest < ActionDispatch::IntegrationTest
     assert_equal 'application/json; charset=utf-8', response.content_type
   end
 
-  test 'should return all menu items with menu' do
+  test 'should return all menu items with menus' do
     get v1_menu_items_url
     assert_response :success
 
@@ -22,7 +23,7 @@ class V1::MenuItemsControllerTest < ActionDispatch::IntegrationTest
     assert_equal 1, json_response.length
     assert_equal @menu_item.name, json_response.first['name']
     assert_equal @menu_item.price.to_s, json_response.first['price']
-    assert_equal @menu.name, json_response.first['menu']['name']
+    assert_equal @menu.name, json_response.first['menus'].first['name']
   end
 
   test 'should return empty array when no menu items exist' do
@@ -41,14 +42,14 @@ class V1::MenuItemsControllerTest < ActionDispatch::IntegrationTest
     assert_equal 'application/json; charset=utf-8', response.content_type
   end
 
-  test 'should return menu item with menu' do
+  test 'should return menu item with menus' do
     get v1_menu_item_url(@menu_item)
     assert_response :success
 
     json_response = JSON.parse(response.body)
     assert_equal @menu_item.name, json_response['name']
     assert_equal @menu_item.price.to_s, json_response['price']
-    assert_equal @menu.name, json_response['menu']['name']
+    assert_equal @menu.name, json_response['menus'].first['name']
   end
 
   test 'should return 404 for non-existent menu item' do
@@ -69,7 +70,7 @@ class V1::MenuItemsControllerTest < ActionDispatch::IntegrationTest
     assert_equal 12.99, MenuItem.last.price
   end
 
-  test 'should create menu item with menu association' do
+  test 'should create menu item without menu association' do
     post v1_menu_items_url, params: @menu_item_params, as: :json
 
     assert_response :created
@@ -77,7 +78,7 @@ class V1::MenuItemsControllerTest < ActionDispatch::IntegrationTest
     json_response = JSON.parse(response.body)
     assert_equal @menu_item_params[:menu_item][:name], json_response['name']
     assert_equal @menu_item_params[:menu_item][:price].to_s, json_response['price']
-    assert_equal @menu.name, json_response['menu']['name']
+    assert_equal [], json_response['menus']
   end
 
   test 'should not create menu item with invalid params' do
@@ -153,7 +154,7 @@ class V1::MenuItemsControllerTest < ActionDispatch::IntegrationTest
     json_response = JSON.parse(response.body)
     assert_equal 1, json_response.length
     assert_equal @menu_item.name, json_response.first['name']
-    assert_equal @menu.name, json_response.first['menu']['name']
+    assert_equal @menu.name, json_response.first['menus'].first['name']
   end
 
   test 'should create menu item for specific menu' do
@@ -166,7 +167,7 @@ class V1::MenuItemsControllerTest < ActionDispatch::IntegrationTest
     json_response = JSON.parse(response.body)
     assert_equal 'Nested Item', json_response['name']
     assert_equal '15.99', json_response['price']
-    assert_equal @menu.name, json_response['menu']['name']
+    assert_equal @menu.name, json_response['menus'].first['name']
   end
 
   test 'should get menu items for specific menu via nested route' do
@@ -188,7 +189,7 @@ class V1::MenuItemsControllerTest < ActionDispatch::IntegrationTest
     menu_item = MenuItem.last
     assert_equal 'Nested Item', menu_item.name
     assert_equal 15.99, menu_item.price
-    assert_equal @menu.id, menu_item.menu_id
+    assert_includes menu_item.menus, @menu
   end
 
   test 'should return empty array when no menu items exist for menu' do
@@ -216,16 +217,16 @@ class V1::MenuItemsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, 'Menu not found'
   end
 
-  test 'should include menu in response' do
+  test 'should include menus in response' do
     get v1_menu_item_url(@menu_item)
 
     json_response = JSON.parse(response.body)
-    assert_not_nil json_response['menu']
-    assert_equal @menu.name, json_response['menu']['name']
+    assert_not_nil json_response['menus']
+    assert_equal @menu.name, json_response['menus'].first['name']
   end
 
   test 'should handle extra parameters' do
-    extra_params = { menu_item: { name: 'Test Item', price: 9.99, menu_id: @menu.id, extra_field: 'ignored' } }
+    extra_params = { menu_item: { name: 'Test Item', price: 9.99, extra_field: 'ignored' } }
 
     post v1_menu_items_url, params: extra_params, as: :json
 

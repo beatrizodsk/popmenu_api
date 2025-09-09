@@ -15,7 +15,8 @@ class V1::MenusControllerTest < ActionDispatch::IntegrationTest
   end
 
   test 'should return all menus with menu items' do
-    menu_item = create(:menu_item, menu: @menu)
+    menu_item = create(:menu_item)
+    @menu.menu_items << menu_item
 
     get v1_menus_url
     assert_response :success
@@ -44,7 +45,8 @@ class V1::MenusControllerTest < ActionDispatch::IntegrationTest
   end
 
   test 'should return menu with menu items' do
-    menu_item = create(:menu_item, menu: @menu)
+    menu_item = create(:menu_item)
+    @menu.menu_items << menu_item
 
     get v1_menu_url(@menu)
     assert_response :success

@@ -111,11 +111,12 @@ class V1::RestaurantsControllerTest < ActionDispatch::IntegrationTest
 
   test 'should destroy restaurant and associated menus' do
     menu = create(:menu, restaurant: @restaurant)
-    menu_item = create(:menu_item, menu: menu)
+    menu_item = create(:menu_item)
+    menu.menu_items << menu_item
 
     assert_difference('Restaurant.count', -1) do
       assert_difference('Menu.count', -1) do
-        assert_difference('MenuItem.count', -1) do
+        assert_no_difference('MenuItem.count') do
           delete v1_restaurant_url(@restaurant)
         end
       end

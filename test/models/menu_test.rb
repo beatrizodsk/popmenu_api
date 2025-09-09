@@ -22,23 +22,25 @@ class MenuTest < ActiveSupport::TestCase
     assert duplicate_menu.valid?
   end
 
-  test 'should have many menu items' do
+  test 'should have and belong to many menu items' do
     menu = create(:menu, :with_menu_items, menu_items_count: 5)
     assert_respond_to menu, :menu_items
     assert_equal 5, menu.menu_items.count
   end
 
-  test 'should destroy associated menu items when menu is destroyed' do
+  test 'should not destroy associated menu items when menu is destroyed' do
     menu = create(:menu)
-    menu_item1 = create(:menu_item, menu: menu)
-    menu_item2 = create(:menu_item, menu: menu)
+    menu_item1 = create(:menu_item)
+    menu_item2 = create(:menu_item)
+
+    menu.menu_items << [menu_item1, menu_item2]
 
     assert_equal 2, menu.menu_items.count
 
     menu.destroy
 
-    assert_raises(ActiveRecord::RecordNotFound) { menu_item1.reload }
-    assert_raises(ActiveRecord::RecordNotFound) { menu_item2.reload }
+    assert MenuItem.find(menu_item1.id)
+    assert MenuItem.find(menu_item2.id)
   end
 
   test 'should be valid without menu items' do
@@ -47,19 +49,20 @@ class MenuTest < ActiveSupport::TestCase
     assert_equal 0, menu.menu_items.count
   end
 
-  test 'should handle validation errors in association' do
+  test 'should handle validation errors when adding menu items' do
     menu = create(:menu)
-    invalid_item = menu.menu_items.build(name: '', price: -1)
+    invalid_item = MenuItem.new(name: '', price: -1)
 
     assert_not invalid_item.valid?
     assert_not invalid_item.save
     assert_equal 0, menu.menu_items.count
   end
 
-  test 'should handle transaction rollback in association' do
+  test 'should handle transaction rollback when adding menu items' do
     menu = create(:menu)
     Menu.transaction do
-      menu.menu_items.create!(name: 'Transaction Item', price: 14.99)
+      menu_item = MenuItem.create!(name: 'Transaction Item', price: 14.99)
+      menu.menu_items << menu_item
       raise ActiveRecord::Rollback
     end
 
