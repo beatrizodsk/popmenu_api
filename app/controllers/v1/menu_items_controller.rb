@@ -6,10 +6,10 @@ class V1::MenuItemsController < ApplicationController
     if params[:menu_id]
       @menu = Menu.find(params[:menu_id])
       @menu_items = @menu.menu_items
-      render json: @menu_items, include: :menu
+      render json: @menu_items, include: :menus
     else
       @menu_items = MenuItem.all
-      render json: @menu_items, include: :menu
+      render json: @menu_items, include: :menus
     end
   rescue ActiveRecord::RecordNotFound
     render json: { error: 'Menu not found' }, status: :not_found
@@ -17,22 +17,29 @@ class V1::MenuItemsController < ApplicationController
 
   # GET /menu_items/:id
   def show
-    render json: @menu_item, include: :menu
+    render json: @menu_item, include: :menus
   end
 
   # POST /menus/:menu_id/menu_items (nested route)
   def create
     if params[:menu_id]
       @menu = Menu.find(params[:menu_id])
-      @menu_item = @menu.menu_items.build(menu_item_params)
+      @menu_item = MenuItem.new(menu_item_params)
+
+      if @menu_item.save
+        @menu.menu_items << @menu_item
+        render json: @menu_item, include: :menus, status: :created
+      else
+        render json: { errors: @menu_item.errors }, status: :unprocessable_entity
+      end
     else
       @menu_item = MenuItem.new(menu_item_params)
-    end
 
-    if @menu_item.save
-      render json: @menu_item, include: :menu, status: :created
-    else
-      render json: { errors: @menu_item.errors }, status: :unprocessable_entity
+      if @menu_item.save
+        render json: @menu_item, include: :menus, status: :created
+      else
+        render json: { errors: @menu_item.errors }, status: :unprocessable_entity
+      end
     end
   rescue ActiveRecord::RecordNotFound
     render json: { error: 'Menu not found' }, status: :not_found
@@ -41,7 +48,7 @@ class V1::MenuItemsController < ApplicationController
   # PATCH/PUT /menu_items/:id
   def update
     if @menu_item.update(menu_item_params)
-      render json: @menu_item, include: :menu
+      render json: @menu_item, include: :menus
     else
       render json: { errors: @menu_item.errors }, status: :unprocessable_entity
     end
@@ -62,6 +69,6 @@ class V1::MenuItemsController < ApplicationController
   end
 
   def menu_item_params
-    params.require(:menu_item).permit(:name, :price, :menu_id)
+    params.require(:menu_item).permit(:name, :price)
   end
 end
