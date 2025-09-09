@@ -39,6 +39,9 @@ group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem 'debug', platforms: %i[mri windows]
 
+  # FactoryBot for test data generation
+  gem 'factory_bot_rails'
+
   # RuboCop for code formatting and linting
   gem 'rubocop', require: false
   gem 'rubocop-rails', require: false
