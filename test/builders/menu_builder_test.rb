@@ -51,7 +51,7 @@ class MenuBuilderTest < ActiveSupport::TestCase
     builder.call
 
     logs = @logger.summary[:logs]
-    assert(logs.any? { |log| log[:message].include?('Found existing menu') })
+    assert(logs.any? { |log| log[:message].include?('Menu already exists') })
   end
 
   test 'should log appropriate messages for new menu' do
@@ -61,7 +61,7 @@ class MenuBuilderTest < ActiveSupport::TestCase
     builder.call
 
     logs = @logger.summary[:logs]
-    assert(logs.any? { |log| log[:message].include?('Successfully created menu') })
+    assert(logs.any? { |log| log[:message].include?('Created menu') })
   end
 
   test 'should handle menu creation errors gracefully' do

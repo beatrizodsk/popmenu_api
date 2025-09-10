@@ -77,7 +77,7 @@ class RestaurantBuilderTest < ActiveSupport::TestCase
     builder.call
 
     logs = @logger.summary[:logs]
-    assert(logs.any? { |log| log[:message].include?('Found existing restaurant') })
+    assert(logs.any? { |log| log[:message].include?('Restaurant already exists') })
   end
 
   test 'should log appropriate messages for new restaurant' do
@@ -87,7 +87,7 @@ class RestaurantBuilderTest < ActiveSupport::TestCase
     builder.call
 
     logs = @logger.summary[:logs]
-    assert(logs.any? { |log| log[:message].include?('Successfully created restaurant') })
+    assert(logs.any? { |log| log[:message].include?('Created restaurant') })
   end
 
   test 'should handle restaurant creation errors gracefully' do

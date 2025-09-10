@@ -123,7 +123,7 @@ class MenuItemBuilderCaseSensitivityTest < ActiveSupport::TestCase
     builder.call
 
     logs = @logger.summary[:logs]
-    assert(logs.any? { |log| log[:message].include?('Found existing menu item') })
+    assert(logs.any? { |log| log[:message].include?('Menu item already exists') })
     assert(logs.any? { |log| log[:message].include?('Burger') })
   end
 end

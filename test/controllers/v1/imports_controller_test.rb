@@ -130,7 +130,7 @@ class V1::ImportsControllerTest < ActionDispatch::IntegrationTest
     response_data = JSON.parse(response.body)
 
     assert_not response_data['success']
-    assert_includes response_data['message'], 'Import failed and was rolled back'
+    assert_includes response_data['message'], 'Validation failed'
   end
 
   test 'should handle unexpected errors gracefully' do
