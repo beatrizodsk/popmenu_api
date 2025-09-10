@@ -42,6 +42,9 @@ group :development, :test do
   # FactoryBot for test data generation
   gem 'factory_bot_rails'
 
+  # Mocha for mocking and stubbing
+  gem 'mocha'
+
   # RuboCop for code formatting and linting
   gem 'rubocop', require: false
   gem 'rubocop-rails', require: false

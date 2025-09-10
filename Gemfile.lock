@@ -124,6 +124,8 @@ GEM
     marcel (1.0.4)
     mini_mime (1.1.5)
     minitest (5.25.5)
+    mocha (2.7.1)
+      ruby2_keywords (>= 0.0.5)
     msgpack (1.8.0)
     mutex_m (0.3.0)
     net-imap (0.5.10)
@@ -235,6 +237,7 @@ GEM
       lint_roller (~> 1.1)
       rubocop (~> 1.72, >= 1.72.1)
     ruby-progressbar (1.13.0)
+    ruby2_keywords (0.0.5)
     securerandom (0.4.1)
     sqlite3 (2.7.3-aarch64-linux-gnu)
     sqlite3 (2.7.3-aarch64-linux-musl)
@@ -274,6 +277,7 @@ DEPENDENCIES
   bootsnap
   debug
   factory_bot_rails
+  mocha
   puma (>= 5.0)
   rails (~> 7.1.5, >= 7.1.5.2)
   rubocop
