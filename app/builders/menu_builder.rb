@@ -9,9 +9,7 @@ class MenuBuilder
     menu_name = @menu_data['name']
     normalized_name = normalize_name(menu_name)
 
-    menu = Menu.joins(:restaurant)
-               .where('LOWER(TRIM(menus.name)) = ? AND restaurants.id = ?', normalized_name, @restaurant.id)
-               .first
+    menu = @restaurant.menus.find_by('LOWER(TRIM(name)) = ?', normalized_name)
 
     if menu
       @logger.log_warning("Menu already exists: '#{menu_name}' in restaurant '#{@restaurant.name}'")

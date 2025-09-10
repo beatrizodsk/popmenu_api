@@ -9,7 +9,7 @@ class MenuItemBuilder
     item_price = @item_data['price']
     normalized_name = normalize_name(item_name)
 
-    menu_item = MenuItem.where('LOWER(TRIM(name)) = ? AND price = ?', normalized_name, item_price).first
+    menu_item = MenuItem.find_by('LOWER(TRIM(name)) = ? AND price = ?', normalized_name, item_price)
 
     if menu_item
       @logger.log_warning("Menu item already exists: #{menu_item.name} with price #{item_price}")
@@ -25,7 +25,7 @@ class MenuItemBuilder
   end
 
   def associate_with_menu(menu_item, menu)
-    if menu.menu_items.include?(menu_item)
+    if menu.menu_items.exists?(menu_item.id)
       @logger.log_warning("Menu item '#{menu_item.name}' already associated with menu '#{menu.name}'")
     else
       menu.menu_items << menu_item

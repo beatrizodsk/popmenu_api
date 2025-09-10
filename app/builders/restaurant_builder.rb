@@ -8,7 +8,7 @@ class RestaurantBuilder
     restaurant_name = @restaurant_data['name']
     normalized_name = normalize_name(restaurant_name)
 
-    restaurant = Restaurant.where('LOWER(TRIM(name)) = ?', normalized_name).first
+    restaurant = Restaurant.find_by('LOWER(TRIM(name)) = ?', normalized_name)
 
     if restaurant
       @logger.log_warning("Restaurant already exists: #{restaurant.name}")
