@@ -1,0 +1,41 @@
+class MenuItemCreator
+  def initialize(logger:)
+    @logger = logger
+  end
+
+  def create_or_find(item_data)
+    item_name = item_data['name']
+    item_price = item_data['price']
+
+    @logger.log_info("Looking for menu item: #{item_name} with price #{item_price}")
+
+    menu_item = MenuItem.find_by(name: item_name, price: item_price)
+
+    if menu_item
+      @logger.log_info("Found existing menu item: #{item_name} with price #{item_price}")
+      menu_item
+    else
+      @logger.log_info("Creating new menu item: #{item_name} with price #{item_price}")
+      menu_item = MenuItem.create!(name: item_name, price: item_price)
+      @logger.log_info("Successfully created menu item: #{item_name} with price #{item_price}")
+      menu_item
+    end
+  rescue ActiveRecord::RecordInvalid => e
+    @logger.log_error("Failed to create menu item '#{item_name}' with price #{item_price}: #{e.message}")
+    raise
+  end
+
+  def associate_with_menu(menu_item, menu)
+    @logger.log_info("Associating menu item '#{menu_item.name}' with menu '#{menu.name}'")
+
+    if menu.menu_items.include?(menu_item)
+      @logger.log_info("Menu item '#{menu_item.name}' already associated with menu '#{menu.name}'")
+    else
+      menu.menu_items << menu_item
+      @logger.log_info("Successfully associated menu item '#{menu_item.name}' with menu '#{menu.name}'")
+    end
+  rescue StandardError => e
+    @logger.log_error("Failed to associate menu item '#{menu_item.name}' with menu '#{menu.name}': #{e.message}")
+    raise
+  end
+end
