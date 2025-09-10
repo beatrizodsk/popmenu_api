@@ -26,18 +26,18 @@ class ImportResultSerializer
   end
 
   def count_restaurants_processed
-    @result[:logs]&.count { |log| log[:message].include?('Processing restaurant') } || 0
+    @result[:logs]&.count { |log| log[:message].include?('Created restaurant') } || 0
   end
 
   def count_menus_created
-    @result[:logs]&.count { |log| log[:message].include?('Successfully created menu') } || 0
+    @result[:logs]&.count { |log| log[:message].include?('Created menu') } || 0
   end
 
   def count_menu_items_created
-    @result[:logs]&.count { |log| log[:message].include?('Successfully created menu item') } || 0
+    @result[:logs]&.count { |log| log[:message].include?('Created menu item') } || 0
   end
 
   def count_associations_created
-    @result[:logs]&.count { |log| log[:message].include?('Successfully associated menu item') } || 0
+    @result[:logs]&.count { |log| log[:message].include?('Associated menu item') } || 0
   end
 end

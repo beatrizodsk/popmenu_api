@@ -43,8 +43,6 @@ class ImportRestaurantsService
   end
 
   def process_restaurant(restaurant_data)
-    @logger.log_info("Processing restaurant: #{restaurant_data['name']}")
-
     restaurant = RestaurantBuilder.new(restaurant_data, @logger).call
 
     restaurant_data['menus']&.each do |menu_data|
@@ -53,8 +51,6 @@ class ImportRestaurantsService
   end
 
   def process_menu(menu_data, restaurant)
-    @logger.log_info("Processing menu: #{menu_data['name']} for restaurant: #{restaurant.name}")
-
     menu = MenuBuilder.new(menu_data, restaurant, @logger).call
 
     menu_data['menu_items']&.each do |item_data|
@@ -63,8 +59,6 @@ class ImportRestaurantsService
   end
 
   def process_menu_item(item_data, menu)
-    @logger.log_info("Processing menu item: #{item_data['name']} for menu: #{menu.name}")
-
     menu_item_builder = MenuItemBuilder.new(item_data, @logger)
     menu_item = menu_item_builder.call
     menu_item_builder.associate_with_menu(menu_item, menu)

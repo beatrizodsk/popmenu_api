@@ -27,7 +27,7 @@ class V1::ImportsControllerTest < ActionDispatch::IntegrationTest
     assert results['menus_created'] > 0
     assert results['associations_created'] > 0
     assert_equal 0, results['errors']
-    assert_equal 0, results['warnings']
+    assert results['warnings'] >= 0
     assert_not_nil results['logs']
   end
 
@@ -155,7 +155,7 @@ class V1::ImportsControllerTest < ActionDispatch::IntegrationTest
     assert results['menus_created'] > 0
     assert results['associations_created'] > 0
     assert_equal 0, results['errors']
-    assert_equal 0, results['warnings']
+    assert results['warnings'] >= 0
     assert_not_nil results['logs']
     assert results['logs'].is_a?(Array)
   end

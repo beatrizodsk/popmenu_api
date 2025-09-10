@@ -8,17 +8,14 @@ class RestaurantBuilder
     restaurant_name = @restaurant_data['name']
     normalized_name = normalize_name(restaurant_name)
 
-    @logger.log_info("Looking for restaurant: #{restaurant_name}")
-
     restaurant = Restaurant.where('LOWER(TRIM(name)) = ?', normalized_name).first
 
     if restaurant
-      @logger.log_info("Found existing restaurant: #{restaurant.name}")
+      @logger.log_warning("Restaurant already exists: #{restaurant.name}")
       restaurant
     else
-      @logger.log_info("Creating new restaurant: #{restaurant_name}")
       restaurant = Restaurant.create!(name: restaurant_name.to_s.strip)
-      @logger.log_info("Successfully created restaurant: #{restaurant_name}")
+      @logger.log_info("Created restaurant: #{restaurant_name}")
       restaurant
     end
   rescue ActiveRecord::RecordInvalid => e
