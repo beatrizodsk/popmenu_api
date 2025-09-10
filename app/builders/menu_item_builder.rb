@@ -1,11 +1,12 @@
-class MenuItemCreator
-  def initialize(logger:)
+class MenuItemBuilder
+  def initialize(item_data, logger)
+    @item_data = item_data
     @logger = logger
   end
 
-  def create_or_find(item_data)
-    item_name = item_data['name']
-    item_price = item_data['price']
+  def call
+    item_name = @item_data['name']
+    item_price = @item_data['price']
 
     @logger.log_info("Looking for menu item: #{item_name} with price #{item_price}")
 

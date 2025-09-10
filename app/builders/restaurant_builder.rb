@@ -1,10 +1,11 @@
-class RestaurantCreator
-  def initialize(logger:)
+class RestaurantBuilder
+  def initialize(restaurant_data, logger)
+    @restaurant_data = restaurant_data
     @logger = logger
   end
 
-  def create_or_find(restaurant_data)
-    restaurant_name = restaurant_data['name']
+  def call
+    restaurant_name = @restaurant_data['name']
 
     @logger.log_info("Looking for restaurant: #{restaurant_name}")
 
