@@ -27,16 +27,22 @@ class V1::ImportsController < ApplicationController
       message: "Data validation error: #{e.message}",
       results: nil,
     }, status: :unprocessable_entity
-  rescue ActiveRecord::RecordInvalid, ActiveRecord::StatementInvalid => e
-    Rails.logger.error "Import transaction rolled back: #{e.message}"
-    Rails.logger.error e.backtrace.join("\n")
+  rescue ActiveRecord::RecordInvalid => e
+    Rails.logger.error "Record validation failed: #{e.message}"
     render json: {
       success: false,
-      message: "Import failed and was rolled back: #{e.message}",
+      message: "Validation failed: #{e.record.errors.full_messages.join(', ')}",
+      results: nil,
+    }, status: :unprocessable_entity
+  rescue ActiveRecord::StatementInvalid => e
+    Rails.logger.error "Database constraint violation: #{e.message}"
+    render json: {
+      success: false,
+      message: "Database constraint violation: #{e.message}",
       results: nil,
     }, status: :unprocessable_entity
   rescue StandardError => e
-    Rails.logger.error "Import failed: #{e.message}"
+    Rails.logger.error "Unexpected error during import: #{e.message}"
     Rails.logger.error e.backtrace.join("\n")
     render json: {
       success: false,
