@@ -13,5 +13,11 @@ Rails.application.routes.draw do
     end
 
     resources :menu_items, except: [:new, :edit]
+
+    resources :imports, only: [] do
+      collection do
+        post :restaurants
+      end
+    end
   end
 end
