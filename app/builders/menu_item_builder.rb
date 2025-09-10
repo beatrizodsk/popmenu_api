@@ -7,17 +7,18 @@ class MenuItemBuilder
   def call
     item_name = @item_data['name']
     item_price = @item_data['price']
+    normalized_name = normalize_name(item_name)
 
     @logger.log_info("Looking for menu item: #{item_name} with price #{item_price}")
 
-    menu_item = MenuItem.find_by(name: item_name, price: item_price)
+    menu_item = MenuItem.where('LOWER(TRIM(name)) = ? AND price = ?', normalized_name, item_price).first
 
     if menu_item
-      @logger.log_info("Found existing menu item: #{item_name} with price #{item_price}")
+      @logger.log_info("Found existing menu item: #{menu_item.name} with price #{item_price}")
       menu_item
     else
       @logger.log_info("Creating new menu item: #{item_name} with price #{item_price}")
-      menu_item = MenuItem.create!(name: item_name, price: item_price)
+      menu_item = MenuItem.create!(name: item_name.to_s.strip.squeeze(' '), price: item_price)
       @logger.log_info("Successfully created menu item: #{item_name} with price #{item_price}")
       menu_item
     end
@@ -38,5 +39,11 @@ class MenuItemBuilder
   rescue StandardError => e
     @logger.log_error("Failed to associate menu item '#{menu_item.name}' with menu '#{menu.name}': #{e.message}")
     raise
+  end
+
+  private
+
+  def normalize_name(name)
+    name.to_s.strip.squeeze(' ').downcase
   end
 end
