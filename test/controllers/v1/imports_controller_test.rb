@@ -117,7 +117,7 @@ class V1::ImportsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test 'should handle data validation errors' do
-    invalid_data = '{"restaurants": [{"invalid": "structure"}]}'
+    invalid_data = '{"restaurants": [{"name": "", "menus": []}]}'
     invalid_file = Rack::Test::UploadedFile.new(
       StringIO.new(invalid_data),
       'application/json',
@@ -126,11 +126,11 @@ class V1::ImportsControllerTest < ActionDispatch::IntegrationTest
 
     post restaurants_v1_imports_url, params: { file: invalid_file }
 
-    assert_response :internal_server_error
+    assert_response :unprocessable_entity
     response_data = JSON.parse(response.body)
 
     assert_not response_data['success']
-    assert_includes response_data['message'], 'Internal server error during import'
+    assert_includes response_data['message'], 'Import failed and was rolled back'
   end
 
   test 'should handle unexpected errors gracefully' do

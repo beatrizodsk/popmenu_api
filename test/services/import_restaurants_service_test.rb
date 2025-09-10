@@ -299,4 +299,128 @@ class ImportRestaurantsServiceTest < ActiveSupport::TestCase
     assert result[:logs].is_a?(Array)
     assert result[:counts][:error] >= 0
   end
+
+  test 'should rollback entire transaction when any record fails' do
+    call_count = 0
+    MenuItem.stubs(:create!).with do |attrs|
+      call_count += 1
+      raise ActiveRecord::RecordInvalid.new(MenuItem.new) if call_count == 2
+
+      MenuItem.create!(attrs)
+    end
+
+    json_data = {
+      'restaurants' => [
+        {
+          'name' => 'Test Restaurant',
+          'menus' => [
+            {
+              'name' => 'lunch',
+              'menu_items' => [
+                { 'name' => 'Burger', 'price' => 10.00 },
+                { 'name' => 'Pizza', 'price' => 12.00 },
+                { 'name' => 'Salad', 'price' => 8.00 },
+              ],
+            },
+          ],
+        },
+      ],
+    }
+
+    assert_raises(ActiveRecord::RecordInvalid) do
+      @service.new(json_data).call
+    end
+
+    assert_equal 0, Restaurant.count
+    assert_equal 0, Menu.count
+    assert_equal 0, MenuItem.count
+  end
+
+  test 'should complete successfully when all records are valid' do
+    json_data = {
+      'restaurants' => [
+        {
+          'name' => 'Test Restaurant',
+          'menus' => [
+            {
+              'name' => 'lunch',
+              'menu_items' => [
+                { 'name' => 'Burger', 'price' => 10.00 },
+                { 'name' => 'Pizza', 'price' => 12.00 },
+                { 'name' => 'Salad', 'price' => 8.00 },
+              ],
+            },
+          ],
+        },
+      ],
+    }
+
+    result = @service.new(json_data).call
+
+    assert result[:success]
+    assert_equal 'Import completed successfully within transaction', result[:message]
+
+    assert_equal 1, Restaurant.count
+    assert_equal 1, Menu.count
+    assert_equal 3, MenuItem.count
+  end
+
+  test 'should handle database constraint violations with rollback' do
+    existing_restaurant = Restaurant.create!(name: 'Existing Restaurant')
+
+    Restaurant.stubs(:create!).with do |_attrs|
+      raise ActiveRecord::StatementInvalid.new('UNIQUE constraint failed')
+    end
+
+    json_data = {
+      'restaurants' => [
+        {
+          'name' => 'New Restaurant',
+          'menus' => [
+            {
+              'name' => 'lunch',
+              'menu_items' => [
+                { 'name' => 'Burger', 'price' => 10.00 },
+              ],
+            },
+          ],
+        },
+      ],
+    }
+
+    assert_raises(ActiveRecord::StatementInvalid) do
+      @service.new(json_data).call
+    end
+
+    assert_equal 1, Restaurant.count
+    assert_equal existing_restaurant.id, Restaurant.first.id
+    assert_equal 0, Menu.count
+    assert_equal 0, MenuItem.count
+  end
+
+  test 'should handle transaction rollback on validation errors' do
+    json_data = {
+      'restaurants' => [
+        {
+          'name' => '',
+          'menus' => [
+            {
+              'name' => 'lunch',
+              'menu_items' => [
+                { 'name' => 'Burger', 'price' => 10.00 },
+              ],
+            },
+          ],
+        },
+      ],
+    }
+
+    assert_raises(ActiveRecord::RecordInvalid) do
+      @service.new(json_data).call
+    end
+
+    assert_equal 0, Restaurant.count
+    assert_equal 0, Menu.count
+    assert_equal 0, MenuItem.count
+  end
 end

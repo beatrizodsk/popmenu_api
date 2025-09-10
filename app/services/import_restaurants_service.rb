@@ -5,10 +5,18 @@ class ImportRestaurantsService
   end
 
   def call
-    json_data = parse_input
-    normalized_data = normalize_data(json_data)
-    import_data(normalized_data)
-    build_result
+    ActiveRecord::Base.transaction do
+      json_data = parse_input
+      normalized_data = normalize_data(json_data)
+      import_data(normalized_data)
+      build_result
+    end
+  rescue ActiveRecord::RecordInvalid, ActiveRecord::StatementInvalid => e
+    @logger.log_error("Transaction rolled back due to: #{e.message}")
+    raise
+  rescue StandardError => e
+    @logger.log_error("Unexpected error during import: #{e.message}")
+    raise
   end
 
   private
@@ -63,6 +71,9 @@ class ImportRestaurantsService
   end
 
   def build_result
-    @logger.summary.merge(success: true)
+    @logger.summary.merge(
+      success: true,
+      message: 'Import completed successfully within transaction'
+    )
   end
 end

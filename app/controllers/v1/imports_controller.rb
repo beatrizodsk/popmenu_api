@@ -27,6 +27,14 @@ class V1::ImportsController < ApplicationController
       message: "Data validation error: #{e.message}",
       results: nil,
     }, status: :unprocessable_entity
+  rescue ActiveRecord::RecordInvalid, ActiveRecord::StatementInvalid => e
+    Rails.logger.error "Import transaction rolled back: #{e.message}"
+    Rails.logger.error e.backtrace.join("\n")
+    render json: {
+      success: false,
+      message: "Import failed and was rolled back: #{e.message}",
+      results: nil,
+    }, status: :unprocessable_entity
   rescue StandardError => e
     Rails.logger.error "Import failed: #{e.message}"
     Rails.logger.error e.backtrace.join("\n")
