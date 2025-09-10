@@ -9,10 +9,10 @@ class MenuItemBuilder
     item_price = @item_data['price']
     normalized_name = normalize_name(item_name)
 
-    menu_item = MenuItem.find_by('LOWER(TRIM(name)) = ? AND price = ?', normalized_name, item_price)
+    menu_item = MenuItem.find_by('LOWER(TRIM(name)) = ?', normalized_name)
 
     if menu_item
-      @logger.log_warning("Menu item already exists: #{menu_item.name} with price #{item_price}")
+      @logger.log_warning("Menu item already exists: #{menu_item.name} (found existing with price #{menu_item.price}, requested price #{item_price})")
       menu_item
     else
       menu_item = MenuItem.create!(name: item_name.to_s.strip.squeeze(' '), price: item_price)

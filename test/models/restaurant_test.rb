@@ -16,10 +16,11 @@ class RestaurantTest < ActiveSupport::TestCase
     assert_not restaurant.valid?
   end
 
-  test 'name should allow duplicates' do
+  test 'name should not allow duplicates' do
     restaurant = create(:restaurant)
     duplicate_restaurant = build(:restaurant, name: restaurant.name)
-    assert duplicate_restaurant.valid?
+    assert_not duplicate_restaurant.valid?
+    assert_includes duplicate_restaurant.errors[:name], 'has already been taken'
   end
 
   test 'should have many menus' do

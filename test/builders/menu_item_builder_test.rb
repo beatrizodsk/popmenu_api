@@ -53,15 +53,16 @@ class MenuItemBuilderTest < ActiveSupport::TestCase
     end
   end
 
-  test 'should create separate menu items for different prices' do
-    create(:menu_item, name: 'Burger', price: 9.00)
+  test 'should reuse existing menu item for same name regardless of price' do
+    existing_item = create(:menu_item, name: 'Burger', price: 9.00)
     item_data = { 'name' => 'burger', 'price' => 15.00 }
     builder = MenuItemBuilder.new(item_data, @logger)
 
-    assert_difference('MenuItem.count', 1) do
+    assert_no_difference('MenuItem.count') do
       menu_item = builder.call
-      assert_equal 'burger', menu_item.name
-      assert_equal 15.00, menu_item.price
+      assert_equal existing_item.id, menu_item.id
+      assert_equal 'Burger', menu_item.name
+      assert_equal 9.00, menu_item.price # Original price is preserved
     end
   end
 

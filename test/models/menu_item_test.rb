@@ -69,20 +69,12 @@ class MenuItemTest < ActiveSupport::TestCase
     assert_equal 2, menu_item.menus.count
   end
 
-  test 'should allow same menu item name across different menus' do
-    menu1 = create(:menu, name: 'Menu 1')
-    menu2 = create(:menu, name: 'Menu 2')
+  test 'should not allow duplicate menu item names' do
+    create(:menu_item, name: 'Pizza Margherita')
+    duplicate_item = build(:menu_item, name: 'Pizza Margherita')
 
-    menu_item1 = create(:menu_item, name: 'Pizza Margherita')
-    menu_item2 = create(:menu_item, name: 'Pizza Margherita')
-
-    menu1.menu_items << menu_item1
-    menu2.menu_items << menu_item2
-
-    assert menu_item1.valid?
-    assert menu_item2.valid?
-    assert_equal 'Pizza Margherita', menu_item1.name
-    assert_equal 'Pizza Margherita', menu_item2.name
+    assert_not duplicate_item.valid?
+    assert_includes duplicate_item.errors[:name], 'has already been taken'
   end
 
   test 'should allow same menu item in multiple menus' do

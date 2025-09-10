@@ -18,24 +18,23 @@ class MenuItemBuilderCaseSensitivityTest < ActiveSupport::TestCase
     end
   end
 
-  test 'should create separate items for same case-insensitive name but different prices' do
-    create(:menu_item, name: 'Burger', price: 9.00)
+  test 'should reuse existing item for same case-insensitive name regardless of price' do
+    existing_item = create(:menu_item, name: 'Burger', price: 9.00)
 
     item_data = { 'name' => 'burger', 'price' => 15.00 }
     builder = MenuItemBuilder.new(item_data, @logger)
 
-    assert_difference('MenuItem.count', 1) do
-      new_item = builder.call
-      assert_equal 'burger', new_item.name
-      assert_equal 15.00, new_item.price
+    assert_no_difference('MenuItem.count') do
+      found_item = builder.call
+      assert_equal existing_item.id, found_item.id
+      assert_equal 'Burger', found_item.name
+      assert_equal 9.00, found_item.price
     end
 
-    assert_equal 2, MenuItem.count
+    assert_equal 1, MenuItem.count
     items = MenuItem.order(:price)
     assert_equal 'Burger', items.first.name
     assert_equal 9.00, items.first.price
-    assert_equal 'burger', items.last.name
-    assert_equal 15.00, items.last.price
   end
 
   test 'should handle multiple case variations correctly' do

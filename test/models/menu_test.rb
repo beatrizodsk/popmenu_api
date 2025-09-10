@@ -16,10 +16,20 @@ class MenuTest < ActiveSupport::TestCase
     assert_not menu.valid?
   end
 
-  test 'name should allow duplicates' do
-    menu = create(:menu)
-    duplicate_menu = build(:menu, name: menu.name)
-    assert duplicate_menu.valid?
+  test 'name should not allow duplicates within same restaurant' do
+    restaurant = create(:restaurant)
+    menu = create(:menu, restaurant: restaurant)
+    duplicate_menu = build(:menu, name: menu.name, restaurant: restaurant)
+    assert_not duplicate_menu.valid?
+    assert_includes duplicate_menu.errors[:name], 'has already been taken'
+  end
+
+  test 'name should allow duplicates across different restaurants' do
+    restaurant1 = create(:restaurant, name: 'Restaurant 1')
+    restaurant2 = create(:restaurant, name: 'Restaurant 2')
+    menu1 = create(:menu, name: 'Lunch Menu', restaurant: restaurant1)
+    menu2 = build(:menu, name: 'Lunch Menu', restaurant: restaurant2)
+    assert menu2.valid?
   end
 
   test 'should have and belong to many menu items' do
