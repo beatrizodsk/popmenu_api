@@ -1,10 +1,18 @@
 class ImportRestaurantsService
-  def initialize(file)
+  def initialize(file, cli_mode: false)
     @file = file
-    @logger = ImportLogger.new
+    @logger = ImportLogger.new(cli_mode: cli_mode)
+    @summary_data = {
+      restaurants_processed: 0,
+      menus_created: 0,
+      menu_items_created: 0,
+      associations_created: 0,
+    }
   end
 
   def call
+    @logger.log_cli_header('Restaurant Import Tool') if @logger.instance_variable_get(:@cli_mode)
+
     ActiveRecord::Base.transaction do
       json_data = parse_input
       normalized_data = normalize_data(json_data)
@@ -37,8 +45,11 @@ class ImportRestaurantsService
   end
 
   def import_data(normalized_data)
+    @logger.log_cli_section('Processing import...') if @logger.instance_variable_get(:@cli_mode)
+
     normalized_data['restaurants']&.each do |restaurant_data|
       process_restaurant(restaurant_data)
+      @summary_data[:restaurants_processed] += 1
     end
   end
 
@@ -51,7 +62,14 @@ class ImportRestaurantsService
   end
 
   def process_menu(menu_data, restaurant)
+    menu_name = menu_data['name']
+    normalized_name = menu_name.to_s.strip.squeeze(' ').downcase
+
+    existing_menu = restaurant.menus.find_by('LOWER(TRIM(name)) = ?', normalized_name)
+
     menu = MenuBuilder.new(menu_data, restaurant, @logger).call
+
+    @summary_data[:menus_created] += 1 unless existing_menu
 
     menu_data['menu_items']&.each do |item_data|
       process_menu_item(item_data, menu)
@@ -59,15 +77,32 @@ class ImportRestaurantsService
   end
 
   def process_menu_item(item_data, menu)
+    item_name = item_data['name']
+    item_price = item_data['price']
+    normalized_name = item_name.to_s.strip.squeeze(' ').downcase
+
+    existing_menu_item = MenuItem.find_by('LOWER(TRIM(name)) = ? AND price = ?', normalized_name, item_price)
+
     menu_item_builder = MenuItemBuilder.new(item_data, @logger)
     menu_item = menu_item_builder.call
+    @summary_data[:menu_items_created] += 1 unless existing_menu_item
+
+    association_exists = menu.menu_items.exists?(menu_item.id)
+
     menu_item_builder.associate_with_menu(menu_item, menu)
+
+    @summary_data[:associations_created] += 1 unless association_exists
   end
 
   def build_result
-    @logger.summary.merge(
+    result = @logger.summary.merge(
       success: true,
-      message: 'Import completed successfully within transaction'
+      message: 'Import completed successfully within transaction',
+      summary_data: @summary_data
     )
+
+    @logger.log_cli_summary(@summary_data) if @logger.instance_variable_get(:@cli_mode)
+
+    result
   end
 end
